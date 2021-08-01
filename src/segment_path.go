@@ -37,6 +37,8 @@ const (
 	Mixed string = "mixed"
 	// Letter like agnoster, but with the first letter of each folder name
 	Letter string = "letter"
+	// Functions as powerlevel10k does
+	PowerLevel10k string = "powerlevel10k"
 	// MixedThreshold the threshold of the length of the path Mixed will display
 	MixedThreshold Property = "mixed_threshold"
 	// MappedLocations allows overriding certain location with an icon
@@ -70,6 +72,8 @@ func (pt *path) string() string {
 		fallthrough
 	case Full:
 		formattedPath = pt.getFullPath()
+	case PowerLevel10k:
+		formattedPath = pt.getPowerLevel10kPath()
 	case Folder:
 		formattedPath = pt.getFolderPath()
 	default:
@@ -189,6 +193,26 @@ func (pt *path) getFullPath() string {
 	return pt.replaceFolderSeparators(pwd)
 }
 
+func (pt *path) getPowerLevel10kPath() string {
+	pwd := pt.getPwd()
+	pwd = pt.replaceFolderSeparators(pwd)
+
+	symbol := ""
+
+	if pwd == pt.env.homeDir() {
+		symbol = pt.props.getString(HomeIcon, "")
+	} else {
+		symbol = pt.props.getString(FolderIcon, "")
+	}
+
+	pwd = strings.Replace(pwd, pt.env.homeDir(), "~", 1)
+
+	if symbol != "" {
+		pwd = symbol + " " + pwd
+	}
+	return pwd
+}
+
 func (pt *path) getFolderPath() string {
 	pwd := pt.getPwd()
 	pwd = base(pwd, pt.env)
@@ -213,7 +237,9 @@ func (pt *path) replaceMappedLocations(pwd string) string {
 	if pt.props.getBool(MappedLocationsEnabled, true) {
 		mappedLocations["HKCU:"] = pt.props.getString(WindowsRegistryIcon, "\uF013")
 		mappedLocations["HKLM:"] = pt.props.getString(WindowsRegistryIcon, "\uF013")
-		mappedLocations[pt.env.homeDir()] = pt.props.getString(HomeIcon, "~")
+		if pt.props.getString(Style, "") != PowerLevel10k {
+			mappedLocations[pt.env.homeDir()] = pt.props.getString(HomeIcon, "~")
+		}
 	}
 
 	// merge custom locations with mapped locations

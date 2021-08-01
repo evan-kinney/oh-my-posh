@@ -2,6 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh3/main/themes/schema.json",
 	"blocks": [{
 			"type": "prompt",
+			"newline": true,
 			"alignment": "left",
 			"segments": [{
 					"type": "text",
@@ -62,9 +63,9 @@
 					"leading_powerline_symbol": "",
 					"trailing_powerline_symbol": "",
 					"properties": {
-						"prefix": "  ",
-						"style": "full",
-						"enable_hyperlink": true,
+						"style": "powerlevel10k",
+						"folder_icon": "",
+						"home_icon": "",
 						"mixed_threshold": 15
 					}
 				},
@@ -77,15 +78,19 @@
 					"trailing_powerline_symbol": "",
 					"properties": {
 						"prefix": " on ",
-						"display_status": true,
-						"display_stash_count": true,
-						"display_upstream_icon": true,
 
 						"branch_icon": " ",
+						"display_branch_status": true,
 						"branch_identical_icon": "\u0008",
 						"branch_ahead_icon": "⭫",
 						"branch_behind_icon": "⇣",
+						"branch_gone_icon": "\u0008",
 
+						"display_status": true,
+						"display_stash_count": true,
+						"local_working_icon": "",
+
+						"display_upstream_icon": true,
 						"git_icon": " ",
 						"github_icon": " ",
 
