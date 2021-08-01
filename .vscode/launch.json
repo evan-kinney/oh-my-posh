@@ -7,7 +7,7 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceRoot}/src",
-      "args": ["--config=${workspaceRoot}/themes/jandedobbeleer.omp.json", "--shell=pwsh"]
+      "args": ["--config=${workspaceRoot}/themes/powerlevel10k_evankinney.omp.json", "--shell=pwsh"]
     },
     {
       "name": "Launch Tooltip",
@@ -15,7 +15,7 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceRoot}/src",
-      "args": ["--config=${workspaceRoot}/themes/jandedobbeleer.omp.json", "--command=git", "--shell=pwsh"]
+      "args": ["--config=${workspaceRoot}/themes/powerlevel10k_evankinney.omp.json", "--command=git", "--shell=pwsh"]
     },
     {
       "name": "Launch tests",
@@ -33,7 +33,7 @@
       "program": "${workspaceRoot}/src",
       "args": [
         "--debug",
-        "--config=${workspaceRoot}/themes/jandedobbeleer.omp.json"
+        "--config=${workspaceRoot}/themes/powerlevel10k_evankinney.omp.json"
       ]
     },
     {
@@ -45,7 +45,7 @@
       "args": [
         "--print-init",
         "--shell=pwsh",
-        "--config=${workspaceRoot}/themes/jandedobbeleer.omp.json"
+        "--config=${workspaceRoot}/themes/powerlevel10k_evankinney.omp.json"
       ]
     },
     {
@@ -59,7 +59,7 @@
         "--shell=shell",
         "--rprompt-offset=40",
         "--cursor-padding=15",
-        "--config=${workspaceRoot}/themes/jandedobbeleer.omp.json"
+        "--config=${workspaceRoot}/themes/powerlevel10k_evankinney.omp.json.omp.json"
       ]
     },
     {
