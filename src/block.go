@@ -18,6 +18,8 @@ const (
 	LineBreak BlockType = "newline"
 	// RPrompt a right aligned prompt in ZSH and Powershell
 	RPrompt BlockType = "rprompt"
+	// Connection creates a horizontal segment between the right and left segments on the same line
+	Connection BlockType = "connection"
 	// Left aligns left
 	Left BlockAlignment = "left"
 	// Right aligns right

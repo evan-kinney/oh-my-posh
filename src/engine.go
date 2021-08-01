@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -41,8 +45,46 @@ func (e *engine) canWriteRPrompt() bool {
 }
 
 func (e *engine) render() string {
-	for _, block := range e.config.Blocks {
-		e.renderBlock(block)
+	lineLength := 0
+	for i, block := range e.config.Blocks {
+		maxLength := -1
+		if block.Type == Connection {
+			futureBlockLengths := 0
+			if len(e.config.Blocks) > i+1 {
+				for _, futureBlock := range e.config.Blocks[i+1:] {
+					cleanFutureBlock := futureBlock
+					if cleanFutureBlock.Newline {
+						break
+					} else {
+						futureBlockLengths += e.getBlockLength(cleanFutureBlock)
+					}
+				}
+			}
+
+			consoleWidth := 0
+			switch e.env.getPlatform() {
+			case windowsPlatform:
+
+				command := exec.Command("mode", "con")
+				buffer := new(bytes.Buffer)
+				command.Stdout = buffer
+				command.Run() // TODO: Check for error
+				scanner := bufio.NewScanner(buffer)
+				for scanner.Scan() {
+					if strings.Contains(scanner.Text(), "Columns") {
+						consoleWidth, _ = strconv.Atoi(strings.Replace(scanner.Text(), "    Columns:        ", "", 1))
+						break
+					}
+				}
+			case linuxPlatform:
+				// TODO: Add support for connection block types on Linux
+			}
+
+			maxLength = consoleWidth - lineLength - futureBlockLengths + 3
+		} else {
+			lineLength += e.getBlockLength(block)
+		}
+		e.renderBlock(block, maxLength)
 	}
 	if e.config.ConsoleTitle {
 		e.write(e.consoleTitle.getConsoleTitle())
@@ -63,7 +105,32 @@ func (e *engine) render() string {
 	return e.print()
 }
 
-func (e *engine) renderBlock(block *Block) {
+func (e *engine) getBlockLength(block *Block) int {
+	block.init(e.env, e.colorWriter, e.ansi)
+	block.setStringValues()
+
+	blockText := ""
+	if block.Newline {
+		return 0
+	}
+	switch block.Type {
+	// This is deprecated but leave if to not break current configs
+	// It is encouraged to used "newline": true on block level
+	// rather than the standalone the linebreak block
+	case LineBreak:
+		return 0
+	case Prompt:
+		blockText = block.renderSegments()
+	case RPrompt:
+		blockText = block.renderSegments()
+	case Connection:
+		return 0
+	}
+
+	return e.ansi.lenWithoutANSI(blockText)
+}
+
+func (e *engine) renderBlock(block *Block, maxLength int) {
 	// when in bash, for rprompt blocks we need to write plain
 	// and wrap in escaped mode or the prompt will not render correctly
 	if block.Type == RPrompt && e.env.getShellName() == bash {
@@ -93,9 +160,19 @@ func (e *engine) renderBlock(block *Block) {
 			e.write(e.ansi.carriageForward())
 			blockText := block.renderSegments()
 			e.write(e.ansi.getCursorForRightWrite(blockText, block.HorizontalOffset))
-			e.write(blockText)
+			if maxLength == -1 {
+				e.write(blockText)
+			} else if maxLength > 1 {
+				e.write(blockText[:maxLength-1])
+			}
+
 		case Left:
-			e.write(block.renderSegments())
+			blockText := block.renderSegments()
+			if maxLength == -1 {
+				e.write(blockText)
+			} else if maxLength > 1 {
+				e.write(blockText[:maxLength-1])
+			}
 		}
 	case RPrompt:
 		blockText := block.renderSegments()
@@ -103,7 +180,24 @@ func (e *engine) renderBlock(block *Block) {
 			blockText = fmt.Sprintf(e.ansi.bashFormat, blockText)
 		}
 		e.rprompt = blockText
+	case Connection:
+		blockText := block.renderSegments()
+		blockText = strings.Repeat(blockText, (maxLength-e.ansi.lenWithoutANSI(blockText))/e.ansi.lenWithoutANSI(blockText))
+
+		if maxLength == -1 {
+			e.write(blockText)
+		} else if maxLength > 1 {
+			charactersToPrint := maxLength
+			for i := 0; i < len(blockText); i++ {
+				if e.ansi.lenWithoutANSI(blockText[0:i]) == maxLength {
+					charactersToPrint = i
+					break
+				}
+			}
+			e.write(blockText[0:charactersToPrint])
+		}
 	}
+
 	// Due to a bug in Powershell, the end of the line needs to be cleared.
 	// If this doesn't happen, the portion after the prompt gets colored in the background
 	// color of the line above the new input line. Clearing the line fixes this,
