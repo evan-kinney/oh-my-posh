@@ -108,6 +108,9 @@ func (a *ansiUtils) lenWithoutANSI(text string) int {
 	if len(text) == 0 {
 		return 0
 	}
+
+	text = strings.ReplaceAll(text, "\u0008", "")
+
 	// replace hyperlinks
 	matches := findAllNamedRegexMatch(`(?P<STR>\x1b]8;;file:\/\/(.+)\x1b\\(?P<URL>.+)\x1b]8;;\x1b\\)`, text)
 	for _, match := range matches {
