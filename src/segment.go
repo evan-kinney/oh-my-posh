@@ -8,23 +8,24 @@ import (
 
 // Segment represent a single segment and it's configuration
 type Segment struct {
-	Type                SegmentType              `config:"type"`
-	Tips                []string                 `config:"tips"`
-	Style               SegmentStyle             `config:"style"`
-	PowerlineSymbol     string                   `config:"powerline_symbol"`
-	InvertPowerline     bool                     `config:"invert_powerline"`
-	Foreground          string                   `config:"foreground"`
-	ForegroundTemplates []string                 `config:"foreground_templates"`
-	Background          string                   `config:"background"`
-	BackgroundTemplates []string                 `config:"background_templates"`
-	LeadingDiamond      string                   `config:"leading_diamond"`
-	TrailingDiamond     string                   `config:"trailing_diamond"`
-	Properties          map[Property]interface{} `config:"properties"`
-	props               *properties
-	writer              SegmentWriter
-	stringValue         string
-	active              bool
-	env                 environmentInfo
+	Type                    SegmentType              `config:"type"`
+	Tips                    []string                 `config:"tips"`
+	Style                   SegmentStyle             `config:"style"`
+	LeadingPowerlineSymbol  string                   `config:"leading_powerline_symbol"`
+	TrailingPowerlineSymbol string                   `config:"trailing_powerline_symbol"`
+	InvertPowerline         bool                     `config:"invert_powerline"`
+	Foreground              string                   `config:"foreground"`
+	ForegroundTemplates     []string                 `config:"foreground_templates"`
+	Background              string                   `config:"background"`
+	BackgroundTemplates     []string                 `config:"background_templates"`
+	LeadingDiamond          string                   `config:"leading_diamond"`
+	TrailingDiamond         string                   `config:"trailing_diamond"`
+	Properties              map[Property]interface{} `config:"properties"`
+	props                   *properties
+	writer                  SegmentWriter
+	stringValue             string
+	active                  bool
+	env                     environmentInfo
 }
 
 // SegmentTiming holds the timing context for a segment

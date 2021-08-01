@@ -24,6 +24,14 @@ const (
 	Right BlockAlignment = "right"
 )
 
+type PowerlinePlacement int
+
+const (
+	Start PowerlinePlacement = iota
+	Middle
+	End
+)
+
 // Block defines a part of the prompt with optional segments
 type Block struct {
 	Type             BlockType      `config:"type"`
@@ -88,11 +96,13 @@ func (b *Block) renderSegments() string {
 			continue
 		}
 		b.activeSegment = segment
+		b.activeSegment = segment
+		b.activeSegment = segment
 		b.endPowerline()
 		b.renderSegmentText(segment.stringValue)
 	}
 	if b.previousActiveSegment != nil && b.previousActiveSegment.Style == Powerline {
-		b.writePowerLineSeparator(Transparent, b.previousActiveSegment.background(), true)
+		b.writePowerLineSeparator(Transparent, b.previousActiveSegment.background(), End)
 	}
 	return b.writer.string()
 }
@@ -103,15 +113,29 @@ func (b *Block) endPowerline() {
 	}
 	if b.activeSegment.Style != Powerline &&
 		b.previousActiveSegment.Style == Powerline {
-		b.writePowerLineSeparator(b.getPowerlineColor(false), b.previousActiveSegment.background(), true)
+		b.writePowerLineSeparator(b.getPowerlineColor(false), b.previousActiveSegment.background(), End)
 	}
 }
 
-func (b *Block) writePowerLineSeparator(background, foreground string, end bool) {
-	symbol := b.activeSegment.PowerlineSymbol
-	if end {
-		symbol = b.previousActiveSegment.PowerlineSymbol
+func (b *Block) writePowerLineSeparator(background, foreground string, placement PowerlinePlacement) {
+	symbol := ""
+
+	switch placement {
+	case Start:
+		symbol = b.activeSegment.LeadingPowerlineSymbol
+	case Middle:
+		switch b.Alignment {
+		case Left:
+			symbol = b.activeSegment.TrailingPowerlineSymbol
+		case Right:
+			symbol = b.activeSegment.LeadingPowerlineSymbol
+			b.writer.write(foreground, background, symbol)
+			return
+		}
+	case End:
+		symbol = b.previousActiveSegment.TrailingPowerlineSymbol
 	}
+
 	if b.activeSegment.InvertPowerline {
 		b.writer.write(foreground, background, symbol)
 		return
@@ -151,7 +175,15 @@ func (b *Block) renderSegmentText(text string) {
 }
 
 func (b *Block) renderPowerLineSegment(text string) {
-	b.writePowerLineSeparator(b.activeSegment.background(), b.getPowerlineColor(true), false)
+	if b.previousActiveSegment == nil {
+		b.writePowerLineSeparator(Transparent, b.activeSegment.background(), Start)
+	} else {
+		if b.previousActiveSegment.Style == Powerline {
+			b.writePowerLineSeparator(b.activeSegment.background(), b.getPowerlineColor(true), Middle)
+		} else {
+			b.writePowerLineSeparator(b.previousActiveSegment.background(), b.activeSegment.background(), Start)
+		}
+	}
 	b.renderText(text)
 }
 
@@ -201,7 +233,7 @@ func (b *Block) debug() (int, []*SegmentTiming) {
 			b.activeSegment = segment
 			b.renderSegmentText(segmentTiming.stringValue)
 			if b.activeSegment.Style == Powerline {
-				b.writePowerLineSeparator(Transparent, b.activeSegment.background(), true)
+				b.writePowerLineSeparator(Transparent, b.activeSegment.background(), Middle)
 			}
 			segmentTiming.stringValue = b.writer.string()
 			b.writer.reset()
