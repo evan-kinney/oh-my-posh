@@ -1,0 +1,208 @@
+{
+	"$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh3/main/themes/schema.json",
+	"blocks": [{
+			"type": "prompt",
+			"alignment": "left",
+			"segments": [{
+					"type": "text",
+					"style": "plain",
+					"foreground": "darkGray",
+					"properties": {
+						"prefix": "",
+						"postfix": "",
+						"text": "╭─"
+					}
+				}
+			]
+		},
+		{
+			"type": "prompt",
+			"alignment": "left",
+			"segments": [
+				{
+					"type": "text",
+					"style": "plain",
+					"foreground": "darkGray",
+					"properties": {
+						"prefix": "",
+						"postfix": "",
+						"text": "\u0008"
+					}
+				},
+				{
+					"type": "root",
+					"style": "powerline",
+					"foreground": "yellow",
+					"background": "black",
+					"leading_powerline_symbol": "",
+					"trailing_powerline_symbol": "",
+					"properties": {
+						"root_icon": "⚡",
+						"postfix": "\u0008 "
+					}
+				},
+				{
+					"type": "os",
+					"style": "powerline",
+					"foreground": "black",
+					"background": "white",
+					"leading_powerline_symbol": "",
+					"trailing_powerline_symbol": "",
+					"trailing_diamond": "",
+					"properties": {
+						"style": "full",
+						"windows": ""
+					}
+				},
+				{
+					"type": "path",
+					"style": "powerline",
+					"foreground": "black",
+					"background": "blue",
+					"leading_powerline_symbol": "",
+					"trailing_powerline_symbol": "",
+					"properties": {
+						"prefix": "  ",
+						"style": "full",
+						"enable_hyperlink": true,
+						"mixed_threshold": 15
+					}
+				},
+				{
+					"type": "git",
+					"style": "powerline",
+					"foreground": "black",
+					"background": "green",
+					"leading_powerline_symbol": "",
+					"trailing_powerline_symbol": "",
+					"properties": {
+						"prefix": " on ",
+						"display_status": true,
+						"display_stash_count": true,
+						"display_upstream_icon": true,
+
+						"branch_icon": " ",
+						"branch_identical_icon": "\u0008",
+						"branch_ahead_icon": "⭫",
+						"branch_behind_icon": "⇣",
+
+						"git_icon": " ",
+						"github_icon": " ",
+
+						"status_colors_enabled": true,
+						"local_changes_color": "yellow"
+					}
+				}
+			]
+		},
+		{
+			"type": "connection",
+			"segments": [
+				{
+					"type": "text",
+					"style": "plain",
+					"background": "transparent",
+					"foreground": "darkGray",
+					"properties": {
+						"prefix": "",
+						"postfix": "",
+						"text": "—"
+					}
+				}
+			]
+		},
+		{
+			"type": "prompt",
+			"alignment": "right",
+			"segments": [
+				{
+					"type": "exit",
+					"style": "powerline",
+					"foreground": "yellow",
+					"background": "black",
+					"leading_powerline_symbol": "",
+					"trailing_powerline_symbol": "",
+					"properties": {
+						"always_enabled": true,
+						"display_exit_code": false,
+						"error_color": "red",
+						"color_background": true,
+						"success_icon": "<green>✔</>",
+						"error_icon": "✘"
+					}
+				},
+				{
+					"type": "python",
+					"style": "powerline",
+					"foreground": "black",
+					"background": "blue",
+					"leading_powerline_symbol": "",
+					"trailing_powerline_symbol": "",
+					"properties": {
+						"postfix": "  ",
+						"display_mode": "environment",
+						"display_version": false
+					}
+				},
+				{
+					"type": "go",
+					"style": "powerline",
+					"foreground": "black",
+					"background": "blue",
+					"leading_powerline_symbol": "",
+					"trailing_powerline_symbol": "",
+					"properties": {
+						"postfix": "  ",
+						"display_mode": "environment"
+					}
+				},
+				{
+					"type": "text",
+					"style": "plain",
+					"background": "transparent",
+					"foreground": "darkGray",
+					"properties": {
+						"prefix": "",
+						"postfix": "",
+						"text": "─╮"
+					}
+				}
+			]
+		},
+		{
+			"type": "rprompt",
+			"alignment": "right",
+			"newline": true,
+			"segments": [
+				{
+					"type": "text",
+					"style": "plain",
+					"background": "transparent",
+					"foreground": "darkGray",
+					"properties": {
+						"prefix": "",
+						"postfix": "",
+						"text": "—╯"
+					}
+				}
+			]
+		},
+		{
+			"type": "prompt",
+			"alignment": "left",
+			"newline": true,
+			"vertical_offset": -1,
+			"segments": [{
+				"type": "exit",
+				"style": "plain",
+				"background": "transparent",
+				"foreground": "darkGray",
+				"properties": {
+					"prefix": "╰—",
+					"always_enabled": true,
+					"display_exit_code": false
+				}
+			}]
+		}
+	]
+}
