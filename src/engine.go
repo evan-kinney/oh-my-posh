@@ -29,6 +29,12 @@ func (e *engine) string() string {
 	return e.console.String()
 }
 
+func (e *engine) backspace(length int) {
+	text := e.ansi.truncateBy(e.string(), length)
+	e.console.Reset()
+	e.write(text)
+}
+
 func (e *engine) canWriteRPrompt() bool {
 	prompt := e.string()
 	consoleWidth, err := e.env.getTerminalWidth()
@@ -47,19 +53,25 @@ func (e *engine) canWriteRPrompt() bool {
 func (e *engine) render() string {
 	lineLength := 0
 	for i, block := range e.config.Blocks {
+
+		if i != 0 {
+			block.previousActiveBlock = e.config.Blocks[i-1]
+		}
+
+		// TODO: Remove finding future block lengths
 		maxLength := -1
 		if block.Type == Connection {
-			futureBlockLengths := 0
-			if len(e.config.Blocks) > i+1 {
-				for _, futureBlock := range e.config.Blocks[i+1:] {
-					cleanFutureBlock := futureBlock
-					if cleanFutureBlock.Newline {
-						break
-					} else {
-						futureBlockLengths += e.getBlockLength(cleanFutureBlock)
-					}
-				}
-			}
+			// futureBlockLengths := 0
+			// if len(e.config.Blocks) > i+1 {
+			// 	for _, futureBlock := range e.config.Blocks[i+1:] {
+			// 		cleanFutureBlock := futureBlock
+			// 		if cleanFutureBlock.Newline {
+			// 			break
+			// 		} else {
+			// 			futureBlockLengths += e.getBlockLength(cleanFutureBlock)
+			// 		}
+			// 	}
+			// }
 
 			consoleWidth := 0
 			switch e.env.getPlatform() {
@@ -80,7 +92,8 @@ func (e *engine) render() string {
 				// TODO: Add support for connection block types on Linux
 			}
 
-			maxLength = consoleWidth - lineLength - futureBlockLengths + 3
+			// maxLength = consoleWidth - lineLength - futureBlockLengths + 3
+			maxLength = consoleWidth - lineLength + 3
 		} else {
 			lineLength += e.getBlockLength(block)
 		}
@@ -157,8 +170,11 @@ func (e *engine) renderBlock(block *Block, maxLength int) {
 		}
 		switch block.Alignment {
 		case Right:
-			e.write(e.ansi.carriageForward())
 			blockText := block.renderSegments()
+			if block.previousActiveBlock.Type == Connection {
+				e.backspace(e.ansi.lenWithoutANSI(blockText))
+			}
+			e.write(e.ansi.carriageForward())
 			e.write(e.ansi.getCursorForRightWrite(blockText, block.HorizontalOffset))
 			if maxLength == -1 {
 				e.write(blockText)
@@ -187,14 +203,7 @@ func (e *engine) renderBlock(block *Block, maxLength int) {
 		if maxLength == -1 {
 			e.write(blockText)
 		} else if maxLength > 1 {
-			charactersToPrint := maxLength
-			for i := 0; i < len(blockText); i++ {
-				if e.ansi.lenWithoutANSI(blockText[0:i]) == maxLength {
-					charactersToPrint = i
-					break
-				}
-			}
-			e.write(blockText[0:charactersToPrint])
+			e.write(e.ansi.truncateTo(blockText, maxLength))
 		}
 	}
 

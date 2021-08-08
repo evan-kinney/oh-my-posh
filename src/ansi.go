@@ -205,3 +205,19 @@ func (a *ansiUtils) escapeText(text string) string {
 	text = strings.ReplaceAll(text, "`", "'")
 	return text
 }
+
+func (a *ansiUtils) truncateTo(text string, length int) string {
+	textLen := len(text)
+	ansiLength := textLen
+	for i := textLen; i > 0; i-- {
+		if a.lenWithoutANSI(text[:i]) == length {
+			ansiLength = i
+			break
+		}
+	}
+	return text[:ansiLength]
+}
+
+func (a *ansiUtils) truncateBy(text string, length int) string {
+	return a.truncateTo(text, a.lenWithoutANSI(text)-length)
+}

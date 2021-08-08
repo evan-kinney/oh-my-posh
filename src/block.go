@@ -48,6 +48,7 @@ type Block struct {
 	ansi                  *ansiUtils
 	activeSegment         *Segment
 	previousActiveSegment *Segment
+	previousActiveBlock   *Block
 }
 
 func (b *Block) init(env environmentInfo, writer colorWriter, ansi *ansiUtils) {
@@ -93,12 +94,13 @@ func (b *Block) setStringValues() {
 
 func (b *Block) renderSegments() string {
 	defer b.writer.reset()
+
+	// TODO: If pervious block was connection write backspaces for length of this block
+
 	for _, segment := range b.Segments {
 		if !segment.active {
 			continue
 		}
-		b.activeSegment = segment
-		b.activeSegment = segment
 		b.activeSegment = segment
 		b.endPowerline()
 		b.renderSegmentText(segment.stringValue)
