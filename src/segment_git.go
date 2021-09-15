@@ -5,17 +5,22 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"gopkg.in/ini.v1"
 )
 
 type gitRepo struct {
-	working    *gitStatus
-	staging    *gitStatus
-	ahead      int
-	behind     int
-	HEAD       string
-	upstream   string
-	stashCount int
-	gitFolder  string
+	working          *gitStatus
+	staging          *gitStatus
+	ahead            int
+	behind           int
+	HEAD             string
+	upstream         string
+	stashCount       int
+	gitWorkingFolder string // .git working folder, can be different of root if using worktree
+	isWorkTree       bool
+	gitRootFolder    string // .git root folder
+	worktreeCount    int
 }
 
 type gitStatus struct {
@@ -116,6 +121,10 @@ const (
 	AheadColor Property = "ahead_color"
 	// BranchMaxLength truncates the length of the branch name
 	BranchMaxLength Property = "branch_max_length"
+	// DisplayWorktreeCount show worktree count or not
+	DisplayWorktreeCount Property = "display_worktree_count"
+	// WorktreeCountIcon shows before the worktree context
+	WorktreeCountIcon Property = "worktree_count_icon"
 )
 
 func (g *git) enabled() bool {
@@ -128,15 +137,23 @@ func (g *git) enabled() bool {
 	}
 	g.repo = &gitRepo{}
 	if gitdir.isDir {
-		g.repo.gitFolder = gitdir.path
+		g.repo.gitWorkingFolder = gitdir.path
+		g.repo.gitRootFolder = gitdir.path
 		return true
 	}
 	// handle worktree
+	g.repo.gitRootFolder = gitdir.path
 	dirPointer := g.env.getFileContent(gitdir.path)
 	dirPointer = strings.Trim(dirPointer, " \r\n")
 	matches := findNamedRegexMatch(`^gitdir: (?P<dir>.*)$`, dirPointer)
 	if matches != nil && matches["dir"] != "" {
-		g.repo.gitFolder = matches["dir"]
+		g.repo.gitWorkingFolder = matches["dir"]
+		// in worktrees, the path looks like this: gitdir: path/.git/worktrees/branch
+		// strips the last .git/worktrees part
+		// :ind+5 = index + /.git
+		ind := strings.LastIndex(g.repo.gitWorkingFolder, "/.git/worktrees")
+		g.repo.gitRootFolder = g.repo.gitWorkingFolder[:ind+5]
+		g.repo.isWorkTree = true
 		return true
 	}
 	return false
@@ -176,6 +193,9 @@ func (g *git) string() string {
 	}
 	if g.repo.stashCount != 0 {
 		fmt.Fprintf(buffer, " %s%d", g.props.getString(StashCountIcon, "\uF692 "), g.repo.stashCount)
+	}
+	if g.repo.worktreeCount != 0 {
+		fmt.Fprintf(buffer, " %s%d", g.props.getString(WorktreeCountIcon, "\uf1bb "), g.repo.worktreeCount)
 	}
 	return buffer.String()
 }
@@ -225,7 +245,7 @@ func (g *git) colorStatusString(prefix, status, color string) string {
 
 func (g *git) getUpstreamSymbol() string {
 	upstream := replaceAllString("/.*", g.repo.upstream, "")
-	url := g.getGitCommandOutput("remote", "get-url", upstream)
+	url := g.getOriginURL(upstream)
 	if strings.Contains(url, "github") {
 		return g.props.getString(GithubIcon, "\uF408 ")
 	}
@@ -257,6 +277,9 @@ func (g *git) setGitStatus() {
 	g.repo.HEAD = g.getGitHEADContext(status["local"])
 	if g.props.getBool(DisplayStashCount, false) {
 		g.repo.stashCount = g.getStashContext()
+	}
+	if g.props.getBool(DisplayWorktreeCount, false) {
+		g.repo.worktreeCount = g.getWorktreeContext()
 	}
 }
 
@@ -303,34 +326,44 @@ func (g *git) getGitHEADContext(ref string) string {
 		ref = fmt.Sprintf("%s%s", branchIcon, ref)
 	}
 	// rebase
-	if g.hasGitFolder("rebase-merge") {
-		head := g.getGitFileContents("rebase-merge/head-name")
+	if g.env.hasFolder(g.repo.gitWorkingFolder + "/rebase-merge") {
+		head := g.getGitFileContents(g.repo.gitWorkingFolder, "rebase-merge/head-name")
 		origin := strings.Replace(head, "refs/heads/", "", 1)
 		origin = g.truncateBranch(origin)
 		onto := g.getGitRefFileSymbolicName("rebase-merge/onto")
 		onto = g.truncateBranch(onto)
-		step := g.getGitFileContents("rebase-merge/msgnum")
-		total := g.getGitFileContents("rebase-merge/end")
+		step := g.getGitFileContents(g.repo.gitWorkingFolder, "rebase-merge/msgnum")
+		total := g.getGitFileContents(g.repo.gitWorkingFolder, "rebase-merge/end")
 		icon := g.props.getString(RebaseIcon, "\uE728 ")
 		return fmt.Sprintf("%s%s%s onto %s%s (%s/%s) at %s", icon, branchIcon, origin, branchIcon, onto, step, total, ref)
 	}
-	if g.hasGitFolder("rebase-apply") {
-		head := g.getGitFileContents("rebase-apply/head-name")
+	if g.env.hasFolder(g.repo.gitWorkingFolder + "/rebase-apply") {
+		head := g.getGitFileContents(g.repo.gitWorkingFolder, "rebase-apply/head-name")
 		origin := strings.Replace(head, "refs/heads/", "", 1)
 		origin = g.truncateBranch(origin)
-		step := g.getGitFileContents("rebase-apply/next")
-		total := g.getGitFileContents("rebase-apply/last")
+		step := g.getGitFileContents(g.repo.gitWorkingFolder, "rebase-apply/next")
+		total := g.getGitFileContents(g.repo.gitWorkingFolder, "rebase-apply/last")
 		icon := g.props.getString(RebaseIcon, "\uE728 ")
 		return fmt.Sprintf("%s%s%s (%s/%s) at %s", icon, branchIcon, origin, step, total, ref)
 	}
 	// merge
 	if g.hasGitFile("MERGE_MSG") && g.hasGitFile("MERGE_HEAD") {
 		icon := g.props.getString(MergeIcon, "\uE727 ")
-		mergeContext := g.getGitFileContents("MERGE_MSG")
-		matches := findNamedRegexMatch(`Merge branch '(?P<head>.*)' into`, mergeContext)
+		mergeContext := g.getGitFileContents(g.repo.gitWorkingFolder, "MERGE_MSG")
+		matches := findNamedRegexMatch(`Merge (?P<type>(remote-tracking )?branch|commit|tag) '(?P<head>.*)' into`, mergeContext)
+
 		if matches != nil && matches["head"] != "" {
-			branch := g.truncateBranch(matches["head"])
-			return fmt.Sprintf("%s%s%s into %s", icon, branchIcon, branch, ref)
+			var headIcon string
+			switch matches["type"] {
+			case "tag":
+				headIcon = g.props.getString(TagIcon, "\uF412")
+			case "commit":
+				headIcon = g.props.getString(CommitIcon, "\uF417")
+			default:
+				headIcon = branchIcon
+			}
+			head := g.truncateBranch(matches["head"])
+			return fmt.Sprintf("%s%s%s into %s", icon, headIcon, head, ref)
 		}
 	}
 	// sequencer status
@@ -339,15 +372,15 @@ func (g *git) getGitHEADContext(ref string) string {
 	// reverts then CHERRY_PICK_HEAD/REVERT_HEAD will not exist so we have to read
 	// the todo file.
 	if g.hasGitFile("CHERRY_PICK_HEAD") {
-		sha := g.getGitFileContents("CHERRY_PICK_HEAD")
+		sha := g.getGitFileContents(g.repo.gitWorkingFolder, "CHERRY_PICK_HEAD")
 		icon := g.props.getString(CherryPickIcon, "\uE29B ")
 		return fmt.Sprintf("%s%s onto %s", icon, sha[0:6], ref)
 	} else if g.hasGitFile("REVERT_HEAD") {
-		sha := g.getGitFileContents("REVERT_HEAD")
+		sha := g.getGitFileContents(g.repo.gitWorkingFolder, "REVERT_HEAD")
 		icon := g.props.getString(RevertIcon, "\uF0E2 ")
 		return fmt.Sprintf("%s%s onto %s", icon, sha[0:6], ref)
 	} else if g.hasGitFile("sequencer/todo") {
-		todo := g.getGitFileContents("sequencer/todo")
+		todo := g.getGitFileContents(g.repo.gitWorkingFolder, "sequencer/todo")
 		matches := findNamedRegexMatch(`^(?P<action>p|pick|revert)\s+(?P<sha>\S+)`, todo)
 		if matches != nil && matches["sha"] != "" {
 			action := matches["action"]
@@ -374,27 +407,25 @@ func (g *git) truncateBranch(branch string) string {
 }
 
 func (g *git) hasGitFile(file string) bool {
-	return g.env.hasFilesInDir(g.repo.gitFolder, file)
+	return g.env.hasFilesInDir(g.repo.gitWorkingFolder, file)
 }
 
-func (g *git) hasGitFolder(folder string) bool {
-	path := g.repo.gitFolder + "/" + folder
-	return g.env.hasFolder(path)
-}
-
-func (g *git) getGitFileContents(file string) string {
-	path := g.repo.gitFolder + "/" + file
-	content := g.env.getFileContent(path)
-	return strings.Trim(content, " \r\n")
+func (g *git) getGitFileContents(folder, file string) string {
+	return strings.Trim(g.env.getFileContent(folder+"/"+file), " \r\n")
 }
 
 func (g *git) getGitRefFileSymbolicName(refFile string) string {
-	ref := g.getGitFileContents(refFile)
+	ref := g.getGitFileContents(g.repo.gitWorkingFolder, refFile)
 	return g.getGitCommandOutput("name-rev", "--name-only", "--exclude=tags/*", ref)
 }
 
 func (g *git) getPrettyHEADName() string {
-	ref := g.getGitCommandOutput("branch", "--show-current")
+	var ref string
+	HEAD := g.getGitFileContents(g.repo.gitWorkingFolder, "HEAD")
+	branchPrefix := "ref: refs/heads/"
+	if strings.HasPrefix(HEAD, branchPrefix) {
+		ref = strings.TrimPrefix(HEAD, branchPrefix)
+	}
 	if ref != "" {
 		ref = g.truncateBranch(ref)
 		return fmt.Sprintf("%s%s", g.props.getString(BranchIcon, "\uE0A0"), ref)
@@ -445,7 +476,7 @@ func (g *git) parseGitStats(output []string, working bool) *gitStatus {
 }
 
 func (g *git) getStashContext() int {
-	stashContent := g.getGitFileContents("logs/refs/stash")
+	stashContent := g.getGitFileContents(g.repo.gitRootFolder, "logs/refs/stash")
 	if stashContent == "" {
 		return 0
 	}
@@ -453,7 +484,27 @@ func (g *git) getStashContext() int {
 	return len(lines)
 }
 
+func (g *git) getWorktreeContext() int {
+	if !g.env.hasFolder(g.repo.gitRootFolder + "/worktrees") {
+		return 0
+	}
+	worktreeFolders := g.env.getFoldersList(g.repo.gitRootFolder + "/worktrees")
+	return len(worktreeFolders)
+}
+
 func (g *git) parseGitStatusInfo(branchInfo string) map[string]string {
 	var branchRegex = `^## (?P<local>\S+?)(\.{3}(?P<upstream>\S+?)( \[(?P<upstream_status>(ahead (?P<ahead>\d+)(, )?)?(behind (?P<behind>\d+))?(gone)?)])?)?$`
 	return findNamedRegexMatch(branchRegex, branchInfo)
+}
+
+func (g *git) getOriginURL(upstream string) string {
+	cfg, err := ini.Load(g.repo.gitRootFolder + "/config")
+	if err != nil {
+		return g.getGitCommandOutput("remote", "get-url", upstream)
+	}
+	keyVal := cfg.Section("remote \"" + upstream + "\"").Key("url").String()
+	if keyVal == "" {
+		return g.getGitCommandOutput("remote", "get-url", upstream)
+	}
+	return keyVal
 }

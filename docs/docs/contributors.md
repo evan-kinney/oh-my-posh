@@ -94,6 +94,16 @@ Thanks goes to these wonderful people ([emoji key][acek]):
   <tr>
     <td align="center"><a href="https://justingrote.github.io"><img src="https://avatars.githubusercontent.com/u/15258962?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Justin Grote</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=JustinGrote" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/henry-js"><img src="https://avatars.githubusercontent.com/u/79054685?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=henry-js" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://wittig.dev"><img src="https://avatars.githubusercontent.com/u/1031515?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Timothy Wittig</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=iarejenius" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Descalon"><img src="https://avatars.githubusercontent.com/u/1098500?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nico Glas</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=Descalon" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/hanskokx"><img src="https://avatars.githubusercontent.com/u/1911919?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Hans Kokx</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=hanskokx" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://alchatti.com"><img src="https://avatars.githubusercontent.com/u/9209306?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Majed Al-Chatti</b></sub></a><br /><a href="#design-alchatti" title="Design">🎨</a></td>
+    <td align="center"><a href="https://jan0660.dev"><img src="https://avatars.githubusercontent.com/u/58996212?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jan0660</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=Jan0660" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="http://www.m365princess.com"><img src="https://avatars.githubusercontent.com/u/49960482?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Luise Freese</b></sub></a><br /><a href="#design-LuiseFreese" title="Design">🎨</a></td>
+    <td align="center"><a href="https://github.com/asherber"><img src="https://avatars.githubusercontent.com/u/5248041?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aaron Sherber</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=asherber" title="Code">💻</a></td>
+    <td align="center"><a href="http://SeanKilleen.com"><img src="https://avatars.githubusercontent.com/u/2148318?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sean Killeen</b></sub></a><br /><a href="https://github.com/JanDeDobbeleer/oh-my-posh/commits?author=SeanKilleen" title="Documentation">📖</a></td>
   </tr>
 </table>
 

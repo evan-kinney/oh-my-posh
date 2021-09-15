@@ -1,4 +1,4 @@
-export POSH_THEME=::CONFIG::
+export POSH_THEME="::CONFIG::"
 export POWERLINE_COMMAND="oh-my-posh"
 export CONDA_PROMPT_MODIFIER=false
 
@@ -9,7 +9,7 @@ if [[ ! -d "/tmp" ]]; then
   TIMER_START="${HOME}/.${USER}.start.$$"
 fi
 
- PS0='$(::OMP:: --millis > $TIMER_START)'
+PS0='$(::OMP:: --millis > "$TIMER_START")'
 
 function _omp_hook() {
     local ret=$?
