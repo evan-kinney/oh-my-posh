@@ -33,7 +33,7 @@ func TestEnabledInWorkingDirectory(t *testing.T) {
 		env: env,
 	}
 	assert.True(t, g.enabled())
-	assert.Equal(t, fileInfo.path, g.repo.gitFolder)
+	assert.Equal(t, fileInfo.path, g.repo.gitWorkingFolder)
 }
 
 func TestEnabledInWorkingTree(t *testing.T) {
@@ -50,7 +50,7 @@ func TestEnabledInWorkingTree(t *testing.T) {
 		env: env,
 	}
 	assert.True(t, g.enabled())
-	assert.Equal(t, "/dir/hello/burp/burp", g.repo.gitFolder)
+	assert.Equal(t, "/dir/hello/burp/burp", g.repo.gitWorkingFolder)
 }
 
 func TestGetGitOutputForCommand(t *testing.T) {
@@ -86,6 +86,7 @@ type detachedContext struct {
 	sequencerTodo string
 	merge         bool
 	mergeHEAD     string
+	mergeMsgStart string
 	status        string
 }
 
@@ -103,8 +104,9 @@ func setupHEADContextEnv(context *detachedContext) *git {
 	env.On("getFileContent", "/rebase-apply/head-name").Return(context.origin)
 	env.On("getFileContent", "/CHERRY_PICK_HEAD").Return(context.cherryPickSHA)
 	env.On("getFileContent", "/REVERT_HEAD").Return(context.revertSHA)
-	env.On("getFileContent", "/MERGE_MSG").Return(fmt.Sprintf("Merge branch '%s' into %s", context.mergeHEAD, context.onto))
+	env.On("getFileContent", "/MERGE_MSG").Return(fmt.Sprintf("%s '%s' into %s", context.mergeMsgStart, context.mergeHEAD, context.onto))
 	env.On("getFileContent", "/sequencer/todo").Return(context.sequencerTodo)
+	env.On("getFileContent", "/HEAD").Return(context.branchName)
 	env.On("hasFilesInDir", "", "CHERRY_PICK_HEAD").Return(context.cherryPick)
 	env.On("hasFilesInDir", "", "REVERT_HEAD").Return(context.revert)
 	env.On("hasFilesInDir", "", "MERGE_MSG").Return(context.merge)
@@ -120,7 +122,7 @@ func setupHEADContextEnv(context *detachedContext) *git {
 	g := &git{
 		env: env,
 		repo: &gitRepo{
-			gitFolder: "",
+			gitWorkingFolder: "",
 		},
 	}
 	return g
@@ -301,8 +303,21 @@ func TestGetGitHEADContextSequencerRevertOnTag(t *testing.T) {
 func TestGetGitHEADContextMerge(t *testing.T) {
 	want := "\ue727 \ue0a0feat into \ue0a0main"
 	context := &detachedContext{
-		merge:     true,
-		mergeHEAD: "feat",
+		merge:         true,
+		mergeHEAD:     "feat",
+		mergeMsgStart: "Merge branch",
+	}
+	g := setupHEADContextEnv(context)
+	got := g.getGitHEADContext("main")
+	assert.Equal(t, want, got)
+}
+
+func TestGetGitHEADContextMergeRemote(t *testing.T) {
+	want := "\ue727 \ue0a0feat into \ue0a0main"
+	context := &detachedContext{
+		merge:         true,
+		mergeHEAD:     "feat",
+		mergeMsgStart: "Merge remote-tracking branch",
 	}
 	g := setupHEADContextEnv(context)
 	got := g.getGitHEADContext("main")
@@ -310,11 +325,36 @@ func TestGetGitHEADContextMerge(t *testing.T) {
 }
 
 func TestGetGitHEADContextMergeTag(t *testing.T) {
+	want := "\ue727 \uf412v7.8.9 into \ue0a0main"
+	context := &detachedContext{
+		merge:         true,
+		mergeHEAD:     "v7.8.9",
+		mergeMsgStart: "Merge tag",
+	}
+	g := setupHEADContextEnv(context)
+	got := g.getGitHEADContext("main")
+	assert.Equal(t, want, got)
+}
+
+func TestGetGitHEADContextMergeCommit(t *testing.T) {
+	want := "\ue727 \uf4178d7e869 into \ue0a0main"
+	context := &detachedContext{
+		merge:         true,
+		mergeHEAD:     "8d7e869",
+		mergeMsgStart: "Merge commit",
+	}
+	g := setupHEADContextEnv(context)
+	got := g.getGitHEADContext("main")
+	assert.Equal(t, want, got)
+}
+
+func TestGetGitHEADContextMergeIntoTag(t *testing.T) {
 	want := "\ue727 \ue0a0feat into \uf412v3.4.6"
 	context := &detachedContext{
-		tagName:   "v3.4.6",
-		merge:     true,
-		mergeHEAD: "feat",
+		tagName:       "v3.4.6",
+		merge:         true,
+		mergeHEAD:     "feat",
+		mergeMsgStart: "Merge branch",
 	}
 	g := setupHEADContextEnv(context)
 	got := g.getGitHEADContext("")
@@ -335,7 +375,7 @@ func TestGetStashContextZeroEntries(t *testing.T) {
 		env.On("getFileContent", "/logs/refs/stash").Return(tc.StashContent)
 		g := &git{
 			repo: &gitRepo{
-				gitFolder: "",
+				gitWorkingFolder: "",
 			},
 			env: env,
 		}

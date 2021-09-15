@@ -595,6 +595,78 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "iarejenius",
+      "name": "Timothy Wittig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1031515?v=4",
+      "profile": "https://wittig.dev",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Descalon",
+      "name": "Nico Glas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1098500?v=4",
+      "profile": "https://github.com/Descalon",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "hanskokx",
+      "name": "Hans Kokx",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1911919?v=4",
+      "profile": "https://github.com/hanskokx",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "alchatti",
+      "name": "Majed Al-Chatti",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9209306?v=4",
+      "profile": "http://alchatti.com",
+      "contributions": [
+        "design"
+      ]
+    },
+    {
+      "login": "Jan0660",
+      "name": "Jan0660",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58996212?v=4",
+      "profile": "https://jan0660.dev",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "LuiseFreese",
+      "name": "Luise Freese",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49960482?v=4",
+      "profile": "http://www.m365princess.com",
+      "contributions": [
+        "design"
+      ]
+    },
+    {
+      "login": "asherber",
+      "name": "Aaron Sherber",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5248041?v=4",
+      "profile": "https://github.com/asherber",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "SeanKilleen",
+      "name": "Sean Killeen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2148318?v=4",
+      "profile": "http://SeanKilleen.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
