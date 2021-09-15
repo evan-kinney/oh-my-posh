@@ -27,6 +27,18 @@
       "description": "Show or hide the version number",
       "default": true
     },
+    "enable_hyperlink": {
+      "type": "boolean",
+      "title": "Enable hyperlink",
+      "description": "Displays an hyperlink for the current segment",
+      "default": false
+    },
+    "http_timeout": {
+      "type": "integer",
+      "title": "Http requst timeout",
+      "description": "Timeout value to use for http request",
+      "default": 20
+    },
     "display_mode": {
       "type": "string",
       "title": "Display Mode",
@@ -155,7 +167,9 @@
             "azfunc",
             "crystal",
             "dart",
-            "rust"
+            "rust",
+            "owm",
+            "memory"
           ]
         },
         "style": {
@@ -556,6 +570,12 @@
                     "description": "Display the stash count or not",
                     "default": false
                   },
+                  "display_worktree_count": {
+                    "type": "boolean",
+                    "title": "Display Worktree Count",
+                    "description": "Display the worktree count or not",
+                    "default": false
+                  },
                   "status_separator_icon": {
                     "type": "string",
                     "title": "Status Separator Icon",
@@ -578,7 +598,13 @@
                     "type": "string",
                     "title": "Stash Count Icon",
                     "description": "The icon to display before the stash context",
-                    "default": "\uF692"
+                    "default": "\uF692 "
+                  },
+                  "worktree_count_icon": {
+                    "type": "string",
+                    "title": "Worktree Count Icon",
+                    "description": "The icon to display before the worktree context",
+                    "default": "\uF1bb "
                   },
                   "commit_icon": {
                     "type": "string",
@@ -615,6 +641,12 @@
                     "title": "Merge Icon",
                     "description": "Icon/text to display before the merge context",
                     "default": "\uE727"
+                  },
+                  "no_commits_icon": {
+                    "type": "string",
+                    "title": "No Commits Icon",
+                    "description": "Icon/text to display when there are no commits in the repo",
+                    "default": "\uF594"
                   },
                   "display_upstream_icon": {
                     "type": "boolean",
@@ -673,7 +705,13 @@
                     "$ref": "#/definitions/color"
                   },
                   "behind_color": { "$ref": "#/definitions/color" },
-                  "ahead_color": { "$ref": "#/definitions/color" }
+                  "ahead_color": { "$ref": "#/definitions/color" },
+                  "branch_max_length": {
+                    "type": "integer",
+                    "title": "Branch max length",
+                    "description": "the max length for the displayed branch name where 0 implies full length",
+                    "default": 0
+                  }
                 }
               }
             }
@@ -1207,6 +1245,12 @@
                     "title": "Mapped Locations",
                     "description": "Custom glyph/text for specific paths",
                     "default": {}
+                  },
+                  "max_depth": {
+                    "type": "integer",
+                    "title": "Maximum Depth",
+                    "description": "Maximum path depth to display whithout shortening",
+                    "default": 1
                   }
                 },
                 "mapped_locations_enabled": {
@@ -1215,17 +1259,14 @@
                   "description": "Replace known locations in the path with the replacements before applying the style.",
                   "default": true
                 },
-                "enable_hyperlink": {
-                  "type": "boolean",
-                  "title": "Enable hyperlink",
-                  "description": "Displays an hyperlink for the current path",
-                  "default": false
-                },
                 "stack_count_enabled": {
                   "type": "boolean",
                   "title": "Show/hide stack count",
                   "description": "Displays the stack count when using pushd/popd",
                   "default": false
+                },
+                "enable_hyperlink": {
+                  "$ref": "#/definitions/enable_hyperlink"
                 }
               }
             }
@@ -1500,6 +1541,55 @@
                     "title": "API URL",
                     "description": "The YTMDA Remote Control API URL",
                     "default": "http://127.0.0.1:9863"
+                  },
+                  "http_timeout": {
+                    "$ref": "#/definitions/http_timeout"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "owm" }
+            }
+          },
+          "then": {
+            "title": "Open Weather Map Segment",
+            "description": "Displays the current weather from the Open Weather Map system",
+            "properties": {
+              "properties": {
+                "properties": {
+                  "apikey": {
+                    "type": "string",
+                    "title": "apikey",
+                    "description": "The apikey used for the api call (Required)",
+                    "default": "."
+                  },
+                  "location": {
+                    "type": "string",
+                    "title": "location",
+                    "description": "Location to use for the api call. Formatted as <City>,<STATE>,<COUNTRY_CODE>. City name, state code and country code divided by comma. Please, refer to ISO 3166 for the state codes or country codes.",
+                    "default": "De Bilt,NL"
+                  },
+                  "units": {
+                    "type": "string",
+                    "title": "units",
+                    "description": "Units of measurement. Available values are standard (kelvin), metric (celsius), and imperial (fahrenheit). Default is standard",
+                    "default": "standard",
+                    "enum": [
+                      "standard",
+                      "metric",
+                      "imperial"
+                    ]
+                  },
+                  "enable_hyperlink": {
+                    "$ref": "#/definitions/enable_hyperlink"
+                  },
+                  "http_timeout": {
+                    "$ref": "#/definitions/http_timeout"
                   }
                 }
               }
@@ -1559,6 +1649,42 @@
           "then": {
             "title": "Posh-Git Segment",
             "description": "https://ohmyposh.dev/docs/poshgit"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "memory" }
+            }
+          },
+          "then": {
+            "title": "Get used memory percentage",
+            "description": "https://ohmyposh.dev/docs/memory",
+            "properties": {
+              "properties": {
+                "properties": {
+                  "precision": {
+                    "type": "integer",
+                    "title": "Precision",
+                    "description": "number of decimal places to show",
+                    "default": 0
+                  },
+                  "use_available": {
+                    "type": "boolean",
+                    "title": "Use available memory",
+                    "description": "whether to use available or free memory on Linux",
+                    "default": true
+                  },
+                  "memory_type": {
+                    "type": "string",
+                    "enum": ["physical", "swap"],
+                    "title": "Memory type",
+                    "description": "whether to show physical or swap memory",
+                    "default": "physical"
+                  }
+                }
+              }
+            }
           }
         }
       ]

@@ -122,6 +122,10 @@ const (
 	Nbgv SegmentType = "nbgv"
 	// Rust writes the cargo version information if cargo.toml is present
 	Rust SegmentType = "rust"
+	// OWM writes the weather coming from openweatherdata
+	OWM SegmentType = "owm"
+	// Memory writes used memory percentage
+	Memory SegmentType = "memory"
 )
 
 func (segment *Segment) string() string {
@@ -230,6 +234,7 @@ func (segment *Segment) background() string {
 func (segment *Segment) mapSegmentWithWriter(env environmentInfo) error {
 	segment.env = env
 	functions := map[SegmentType]SegmentWriter{
+		OWM:           &owm{},
 		Session:       &session{},
 		Path:          &path{},
 		Git:           &git{},
@@ -262,6 +267,7 @@ func (segment *Segment) mapSegmentWithWriter(env environmentInfo) error {
 		Dart:          &dart{},
 		Nbgv:          &nbgv{},
 		Rust:          &rust{},
+		Memory:        &memory{},
 	}
 	if writer, ok := functions[segment.Type]; ok {
 		props := &properties{

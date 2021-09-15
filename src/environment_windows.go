@@ -1,4 +1,4 @@
-// +build windows
+//go:build windows
 
 package main
 
@@ -71,4 +71,8 @@ func (env *environment) isWsl() bool {
 func (env *environment) getTerminalWidth() (int, error) {
 	defer env.tracer.trace(time.Now(), "getTerminalWidth")
 	return 0, errors.New("Unsupported on Windows")
+}
+
+func (env *environment) getPlatform() string {
+	return windowsPlatform
 }

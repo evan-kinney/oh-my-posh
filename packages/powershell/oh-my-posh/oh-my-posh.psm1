@@ -14,15 +14,21 @@ function Get-PoshCommand {
     if ($IsLinux) {
         # this is rather hacky but there's no other way for the time being
         $arch = uname -m
-        if (($arch -eq 'aarch64') -or ($arch -eq 'armv7l')) {
+        if ($arch -eq 'aarch64') {
+            return "$PSScriptRoot/bin/posh-linux-arm64"
+        }
+        if ($arch -eq 'armv7l') {
             return "$PSScriptRoot/bin/posh-linux-arm"
         }
         return "$PSScriptRoot/bin/posh-linux-amd64"
     }
-    if ([Environment]::Is64BitOperatingSystem) {
-        return "$PSScriptRoot/bin/posh-windows-amd64.exe"
+    $arch = (Get-CimInstance -Class Win32_Processor -Property Architecture).Architecture
+    switch ($arch) {
+        0 { return "$PSScriptRoot/bin/posh-windows-386.exe" } # x86
+        5 { return "$PSScriptRoot/bin/posh-windows-arm64.exe" } # ARM
+        9 { return "$PSScriptRoot/bin/posh-windows-amd64.exe" } # x64
     }
-    return "$PSScriptRoot/bin/posh-windows-386.exe"
+    throw "Oh My Posh: Unsupported architecture: $arch"
 }
 
 function Set-ExecutablePermissions {
